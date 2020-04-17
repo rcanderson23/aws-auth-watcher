@@ -1,9 +1,10 @@
-package internal
+package controller
 
 import (
 	"k8s.io/klog"
 	"time"
 
+	"github.com/rcanderson23/aws-auth-watcher/internal/notification"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -12,7 +13,6 @@ import (
 
 type Watcher struct {
 	AuthConfigMap *AuthConfigMap
-	AuthListWatch *cache.ListWatch
 	Controller    cache.Controller
 }
 
@@ -28,13 +28,13 @@ func NewWatcher(clientset *kubernetes.Clientset, acm *AuthConfigMap) *Watcher {
 
 	return &Watcher{
 		AuthConfigMap: acm,
-		AuthListWatch: authListWatch,
 		Controller:    controller,
 	}
 }
 
 type AuthConfigMap struct {
 	AwsAuth *v1.ConfigMap
+	AwsSns  *notification.AwsSns
 }
 
 func (a *AuthConfigMap) Add(obj interface{}) {
@@ -42,6 +42,7 @@ func (a *AuthConfigMap) Add(obj interface{}) {
 	// Need to account for the aws-auth ConfigMap changing before after controller creation and before watcher
 	if a.AwsAuth.ResourceVersion != obj.(*v1.ConfigMap).ResourceVersion {
 		klog.Info("Auth has changed! Firing notification!")
+		a.AwsSns.PublishChange(a.AwsAuth, obj)
 	}
 }
 
@@ -51,4 +52,5 @@ func (a *AuthConfigMap) Delete(obj interface{}) {
 
 func (a *AuthConfigMap) Update(oldObj, newObj interface{}) {
 	klog.Info("Auth has changed! Firing notification!")
+	a.AwsSns.PublishChange(oldObj, newObj)
 }

@@ -2,10 +2,14 @@ package main
 
 import (
 	"flag"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"os"
 	"path/filepath"
 
-	"github.com/rcanderson23/aws-auth-watcher/internal"
+	"github.com/rcanderson23/aws-auth-watcher/internal/controller"
+	"github.com/rcanderson23/aws-auth-watcher/internal/notification"
 	"k8s.io/klog"
 
 	v1 "k8s.io/api/core/v1"
@@ -16,6 +20,10 @@ import (
 )
 
 func main() {
+	region := os.Getenv("AWS_DEFAULT_REGION")
+	topic := os.Getenv("SNS_TOPIC")
+	klog.Infof("Region: %s", region)
+
 	config := createConfig()
 	// creates the clientset
 	var err error
@@ -30,12 +38,21 @@ func main() {
 	if err != nil {
 		cm = &v1.ConfigMap{}
 	}
-	acm := internal.AuthConfigMap{
-		AwsAuth: cm,
+
+	snsSession := session.Must(session.NewSession())
+	AwsSns := &notification.AwsSns{
+		SnsClient: sns.New(snsSession, &aws.Config{
+			Region: aws.String(region),
+		}),
+		SnsTopic: &topic,
 	}
 
-	// create watcher object
-	watcher := internal.NewWatcher(clientset, &acm)
+	acm := controller.AuthConfigMap{
+		AwsAuth: cm,
+		AwsSns:  AwsSns,
+	}
+
+	watcher := controller.NewWatcher(clientset, &acm)
 
 	stop := make(chan struct{})
 	go watcher.Controller.Run(stop)

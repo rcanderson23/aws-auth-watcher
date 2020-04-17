@@ -3,6 +3,7 @@ module github.com/rcanderson23/aws-auth-watcher
 go 1.14
 
 require (
+	github.com/aws/aws-sdk-go v1.30.7
 	github.com/imdario/mergo v0.3.9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
