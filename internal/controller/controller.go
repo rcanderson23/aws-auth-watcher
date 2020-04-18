@@ -39,18 +39,26 @@ type AuthConfigMap struct {
 
 func (a *AuthConfigMap) Add(obj interface{}) {
 	klog.Info("aws-auth added to watcher")
+
 	// Need to account for the aws-auth ConfigMap changing before after controller creation and before watcher
 	if a.AwsAuth.ResourceVersion != obj.(*v1.ConfigMap).ResourceVersion {
 		klog.Info("Auth has changed! Firing notification!")
 		a.AwsSns.PublishChange(a.AwsAuth, obj)
+
+		// Necessary copy when watcher restarts
+		obj.(*v1.ConfigMap).DeepCopyInto(a.AwsAuth)
 	}
 }
 
 func (a *AuthConfigMap) Delete(obj interface{}) {
 	klog.Info("aws-auth deleted! Firing notification!")
+	a.AwsAuth = &v1.ConfigMap{}
 }
 
 func (a *AuthConfigMap) Update(oldObj, newObj interface{}) {
 	klog.Info("Auth has changed! Firing notification!")
 	a.AwsSns.PublishChange(oldObj, newObj)
+
+	// Necessary copy when watcher restarts
+	newObj.(*v1.ConfigMap).DeepCopyInto(a.AwsAuth)
 }
