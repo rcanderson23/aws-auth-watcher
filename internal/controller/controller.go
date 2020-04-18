@@ -53,6 +53,7 @@ func (a *AuthConfigMap) Add(obj interface{}) {
 func (a *AuthConfigMap) Delete(obj interface{}) {
 	klog.Info("aws-auth deleted! Firing notification!")
 	a.AwsAuth = &v1.ConfigMap{}
+	a.AwsSns.PublishDelete(obj)
 }
 
 func (a *AuthConfigMap) Update(oldObj, newObj interface{}) {

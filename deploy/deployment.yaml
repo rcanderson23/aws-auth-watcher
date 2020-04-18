@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: aws-auth-watcher
+  name: aws-auth-watcher
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      run: aws-auth-watcher
+  template:
+    metadata:
+      labels:
+        run: aws-auth-watcher
+    spec:
+      serviceAccountName: aws-auth-watcher
+      containers:
+      - image: rcanderson23/aws-auth-watcher
+        imagePullPolicy: Always
+        name: aws-auth-watcher
+        env:
+          - name: AWS_DEFAULT_REGION
+            value: CHANGE_ME
+          - name: SNS_TOPIC
+            value: CHANGE_ME

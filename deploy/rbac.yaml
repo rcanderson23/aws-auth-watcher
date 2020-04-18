@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: kube-system
+  name: aws-auth-watcher
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["configmaps"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: aws-auth-watcher
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: aws-auth-watcher
+  apiGroup: ""
+roleRef:
+  kind: Role 
+  name: aws-auth-watcher
+  apiGroup: ""
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-auth-watcher
+  namespace: kube-system
