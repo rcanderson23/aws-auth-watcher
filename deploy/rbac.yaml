@@ -25,5 +25,8 @@ roleRef:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::<account>:role/aws-auth-watcher
   name: aws-auth-watcher
   namespace: kube-system
+
