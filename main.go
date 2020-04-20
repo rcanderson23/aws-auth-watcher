@@ -22,7 +22,10 @@ import (
 func main() {
 	region := os.Getenv("AWS_DEFAULT_REGION")
 	topic := os.Getenv("SNS_TOPIC")
+	cluster := os.Getenv("CLUSTER_NAME")
 	klog.Infof("Region: %s", region)
+	klog.Infof("Topic: %s", topic)
+	klog.Infof("Cluster: %s", cluster)
 
 	config := createConfig()
 	// creates the clientset
@@ -48,8 +51,9 @@ func main() {
 	}
 
 	acm := controller.AuthConfigMap{
-		AwsAuth: cm,
-		AwsSns:  AwsSns,
+		AwsAuth:     cm,
+		AwsSns:      AwsSns,
+		ClusterName: &cluster,
 	}
 
 	watcher := controller.NewWatcher(clientset, &acm)

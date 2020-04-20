@@ -18,11 +18,11 @@ type AwsSns struct {
 	SnsTopic  *string
 }
 
-func (a *AwsSns) PublishChange(oldObj, newObj interface{}) {
+func (a *AwsSns) PublishChange(oldObj, newObj interface{}, cluster string) {
 	oldString := mapToString(oldObj.(*v1.ConfigMap).Data)
 	newString := mapToString(newObj.(*v1.ConfigMap).Data)
 	b := new(bytes.Buffer)
-	fmt.Fprintf(b, "Old ConfigMap Data:\n%s\n\nNew ConfigMap Data:\n%s", oldString, newString)
+	fmt.Fprintf(b, "ClusterName: %s\n\nOld ConfigMap Data:\n%s\n\nNew ConfigMap Data:\n%s", cluster, oldString, newString)
 	message := b.String()
 	_, err := a.SnsClient.Publish(&sns.PublishInput{
 		Message:  &message,
@@ -33,10 +33,10 @@ func (a *AwsSns) PublishChange(oldObj, newObj interface{}) {
 	}
 }
 
-func (a *AwsSns) PublishDelete(obj interface{}) {
+func (a *AwsSns) PublishDelete(obj interface{}, cluster string) {
 	oldString := mapToString(obj.(*v1.ConfigMap).Data)
 	b := new(bytes.Buffer)
-	fmt.Fprintf(b, "Deleted ConfigMap Data:\n%s", oldString)
+	fmt.Fprintf(b, "Cluster: %s\n\nDeleted ConfigMap Data:\n%s", cluster, oldString)
 	message := b.String()
 	_, err := a.SnsClient.Publish(&sns.PublishInput{
 		Message:  &message,

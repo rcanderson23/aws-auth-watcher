@@ -34,8 +34,9 @@ func NewWatcher(clientset *kubernetes.Clientset, acm *AuthConfigMap) *Watcher {
 }
 
 type AuthConfigMap struct {
-	AwsAuth *v1.ConfigMap
-	AwsSns  *notification.AwsSns
+	AwsAuth     *v1.ConfigMap
+	AwsSns      *notification.AwsSns
+	ClusterName *string
 }
 
 func (a *AuthConfigMap) Add(obj interface{}) {
@@ -45,7 +46,7 @@ func (a *AuthConfigMap) Add(obj interface{}) {
 	eq := reflect.DeepEqual(a.AwsAuth.Data, obj.(*v1.ConfigMap).Data)
 	if !eq {
 		klog.Info("Auth has changed! Firing notification!")
-		a.AwsSns.PublishChange(a.AwsAuth, obj)
+		a.AwsSns.PublishChange(a.AwsAuth, obj, *a.ClusterName)
 
 		// Necessary copy when watcher restarts
 		obj.(*v1.ConfigMap).DeepCopyInto(a.AwsAuth)
@@ -55,14 +56,14 @@ func (a *AuthConfigMap) Add(obj interface{}) {
 func (a *AuthConfigMap) Delete(obj interface{}) {
 	klog.Info("aws-auth deleted! Firing notification!")
 	a.AwsAuth = &v1.ConfigMap{}
-	a.AwsSns.PublishDelete(obj)
+	a.AwsSns.PublishDelete(obj, *a.ClusterName)
 }
 
 func (a *AuthConfigMap) Update(oldObj, newObj interface{}) {
 	eq := reflect.DeepEqual(oldObj.(*v1.ConfigMap).Data, newObj.(*v1.ConfigMap).Data)
 	if !eq {
 		klog.Info("Auth has changed! Firing notification!")
-		a.AwsSns.PublishChange(a.AwsAuth, newObj)
+		a.AwsSns.PublishChange(a.AwsAuth, newObj, *a.ClusterName)
 
 		// Necessary copy when watcher restarts
 		newObj.(*v1.ConfigMap).DeepCopyInto(a.AwsAuth)

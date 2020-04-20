@@ -32,6 +32,8 @@ Example Policy:
 Example Email:
 ----------
 ```
+Cluster Name: eks
+
 Old ConfigMap Data:
 mapRoles="- groups:
   - system:bootstrappers
